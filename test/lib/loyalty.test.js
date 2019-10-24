@@ -30,6 +30,16 @@ describe('lib/loyalty', () => {
       const status = loyaltyLib.getLoyaltyStatusForRideCount(160);
       expect(status).to.equal('platinum');
     });
+
+    it('should throw an error caused by a wrong type of rideCount', () => {
+      const status = loyaltyLib.getLoyaltyStatusForRideCount('one hundred');
+      expect(status).toThrow('Error, rideCount is not a number or is negative');
+    });
+
+    it('should throw an error caused by a negative rideCount', () => {
+      const status = loyaltyLib.getLoyaltyStatusForRideCount(-100);
+      expect(status).toThrow('Error, rideCount is not a number or is negative');
+    });
   });
 
   describe('#getLoyaltyPointsForRideAmount', () => {
