@@ -44,7 +44,29 @@ function getLoyaltyStatusForRideCount(rideCount) {
  * @returns {Number} amount of earned loyalty points
  */
 function getLoyaltyPointsForRideAmount(loyaltyStatus, rideAmount) {
-  // TODO make tests pass
+  const status = loyaltyStatus.toLowerCase();
+
+  if (status !== 'bronze' && status !== 'silver' &&
+      status !== 'gold' && status !== 'platinium') throw new Error('Error, loyaltyStatus is invalid');
+  if (typeof rideAmount !== 'number' || rideAmount < 1) throw new Error('Error, rideAmount is not a number or is negative');
+
+  let points;
+
+  switch (loyaltyStatus) {
+    case 'silver' :
+      points = rideAmount * 3;
+      break;
+    case 'gold' :
+      points = rideAmount * 5;
+      break;
+    case 'platinium' :
+      points = rideAmount * 10;
+      break;
+    default :
+      points = rideAmount;
+  }
+
+  return points;
 }
 
 /**
