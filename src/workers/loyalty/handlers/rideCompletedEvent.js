@@ -20,6 +20,21 @@ async function handleRideCompletedEvent(message) {
     { ride_id: rideId, rider_id: riderId, amount },
     '[worker.handleRideCompletedEvent] Received user ride completed event');
 
+  const rider = await riderModel.findOneById(ObjectId(riderId));
+  if (rider) {
+    const updateRider = await loyaltyModel.getRiderUpdate(rider, message.amount);
+
+    const successUpdate = await riderModel.updateOne(ObjectId(rider._id),
+    { ride_count: updateRider.ride_count, points: updateRider.points, status: updateRider.status });
+
+    // Logs to compare initial and final results
+    console.log('MESSAGE =========> ', message);
+    console.log('RIDER ========> ', rider);
+    console.log('UPDATE ==============> ', updateRider);
+    console.log('SUCCESS ======> ', successUpdate.result.ok);
+  }
+
+
   // TODO handle edge cases (no rider, no ride), to make tests pass
 
   // TODO Complete ride + update rider's status
