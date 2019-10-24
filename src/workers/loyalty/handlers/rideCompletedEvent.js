@@ -1,6 +1,11 @@
 'use strict';
 
 const logger = require('chpr-logger');
+const { ObjectId } = require('mongodb');
+
+// const { handleMessageError } = require('../../../lib/workers');
+const riderModel = require('../../../models/riders');
+const loyaltyModel = require('../../../lib/loyalty');
 
 /**
  * Bus message handler for ride complete events
