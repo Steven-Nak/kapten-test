@@ -27,7 +27,12 @@ function _getStatusIndex(rideCount) {
  * @returns {string} loyalty status
  */
 function getLoyaltyStatusForRideCount(rideCount) {
-  // TODO make tests pass
+  if (typeof rideCount !== 'number' || rideCount < 0) throw new Error('Error, rideCount is not a number or is negative');
+
+  if (rideCount === 0 || rideCount < 20) return 'bronze';
+  else if (rideCount === 20 || rideCount < 50) return 'silver';
+  else if (rideCount === 50 || rideCount < 100) return 'gold';
+  return 'platinium';
 }
 
 /**
