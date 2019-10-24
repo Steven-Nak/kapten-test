@@ -14,9 +14,9 @@ const riderModel = require('../../../models/riders');
  */
 async function handleRideCreatedEvent(message) {
   const { id: rideId, rider_id: riderId, amount } = message;
-  logger.info(
-    { ride_id: rideId, rider_id: riderId, amount },
-    '[worker.handleRideCreatedEvent] Received user ride created event');
+  // logger.info(
+  //   { ride_id: rideId, rider_id: riderId, amount },
+  //   '[worker.handleRideCreatedEvent] Received user ride created event');
 
 
   const rider = await riderModel.findOneById(
@@ -29,14 +29,14 @@ async function handleRideCreatedEvent(message) {
   const ride = await rideModel.findOneById(
     ObjectId.createFromHexString(rideId)
   );
-  if (ride) {
-    logger.info('[worker.handleRideCreatedEvent] Ride already created');
-    return;
-  }
+  // if (ride) {
+  //   logger.info('[worker.handleRideCreatedEvent] Ride already created');
+  //   return;
+  // }
 
-  logger.info(
-    { ride_id: rideId, rider_id: riderId },
-    '[worker.handleRideCreatedEvent] Insert ride');
+  // logger.info(
+  //   { ride_id: rideId, rider_id: riderId },
+  //   '[worker.handleRideCreatedEvent] Insert ride');
   await rideModel.insertOne({
     _id: rideId,
     rider_id: riderId,

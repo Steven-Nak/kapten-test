@@ -15,16 +15,16 @@ const riderModel = require('../../../models/riders');
 async function handleSignupEvent(message, messageFields) {
   const { id: riderId, name } = message;
 
-  logger.info(
-    { rider_id: riderId, name },
-    '[worker.handleSignupEvent] Received user signup event');
+  // logger.info(
+  //   { rider_id: riderId, name },
+  //   '[worker.handleSignupEvent] Received user signup event');
 
   // TODO make test pass if rider already created
 
   try {
-    logger.info(
-      { rider_id: riderId, name },
-      '[worker.handleSignupEvent] Insert rider');
+    // logger.info(
+    //   { rider_id: riderId, name },
+    //   '[worker.handleSignupEvent] Insert rider');
     await riderModel.insertOne({
       _id: riderId,
       name
