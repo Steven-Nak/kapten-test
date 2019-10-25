@@ -27,12 +27,12 @@ function _getStatusIndex(rideCount) {
  * @returns {string} loyalty status
  */
 function getLoyaltyStatusForRideCount(rideCount) {
-  if (typeof rideCount !== 'number' || rideCount < 0) throw new Error('Error, rideCount is not a number or is negative');
+  if (typeof rideCount !== 'number' || rideCount < 0) throw Error('rideCount is not a number or is negative');
 
   if (rideCount === 0 || rideCount < 20) return 'bronze';
   else if (rideCount === 20 || rideCount < 50) return 'silver';
   else if (rideCount === 50 || rideCount < 100) return 'gold';
-  return 'platinium';
+  return 'platinum';
 }
 
 /**
@@ -44,22 +44,24 @@ function getLoyaltyStatusForRideCount(rideCount) {
  * @returns {Number} amount of earned loyalty points
  */
 function getLoyaltyPointsForRideAmount(loyaltyStatus, rideAmount) {
+  if (typeof rideAmount !== 'number' || typeof loyaltyStatus !== 'string') throw Error('parameters may be in a wrong type');
+  if (rideAmount < 1) throw Error('rideAmount is not a number or is negative');
+
   const status = loyaltyStatus.toLowerCase();
 
-  if (status !== 'bronze' && status !== 'silver' &&
-      status !== 'gold' && status !== 'platinium') throw new Error('Error, loyaltyStatus is invalid');
-  if (typeof rideAmount !== 'number' || rideAmount < 1) throw new Error('Error, rideAmount is not a number or is negative');
+  if (loyaltyStatus !== 'bronze' && loyaltyStatus !== 'silver' &&
+      loyaltyStatus !== 'gold' && loyaltyStatus !== 'platinum') throw Error('loyaltyStatus is invalid');
 
   let points;
 
-  switch (loyaltyStatus) {
+  switch (status) {
     case 'silver' :
       points = rideAmount * 3;
       break;
     case 'gold' :
       points = rideAmount * 5;
       break;
-    case 'platinium' :
+    case 'platinum' :
       points = rideAmount * 10;
       break;
     default :
