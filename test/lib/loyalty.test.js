@@ -32,13 +32,15 @@ describe('lib/loyalty', () => {
     });
 
     it('should throw an error caused by a wrong type of rideCount', () => {
-      const status = loyaltyLib.getLoyaltyStatusForRideCount('one hundred');
-      expect(status).toThrow('Error, rideCount is not a number or is negative');
+      expect(() => {
+        loyaltyLib.getLoyaltyStatusForRideCount('one hundred');
+      }).to.throw('rideCount is not a number or is negative');
     });
 
     it('should throw an error caused by a negative rideCount', () => {
-      const status = loyaltyLib.getLoyaltyStatusForRideCount(-100);
-      expect(status).toThrow('Error, rideCount is not a number or is negative');
+      expect(() => {
+        loyaltyLib.getLoyaltyStatusForRideCount(-100);
+      }).to.throw('rideCount is not a number or is negative');
     });
   });
 
@@ -64,28 +66,33 @@ describe('lib/loyalty', () => {
     });
 
     it('should throw an error caused by a wrong loyaltyStatus', () => {
-      const points = loyaltyLib.getLoyaltyPointsForRideAmount('bronzer', 30);
-      expect(points).toThrow(new Error('Error, loyaltyStatus is invalid'));
+      expect(() => {
+        loyaltyLib.getLoyaltyPointsForRideAmount('bronzer', 30);
+      }).to.throw('loyaltyStatus is invalid');
     });
 
     it('should throw an error caused by a wrong type of rideAmount', () => {
-      const points = loyaltyLib.getLoyaltyPointsForRideAmount('bronze', 'thirty');
-      expect(points).toThrow(new Error('Error, rideAmount is not a number or is negative'));
+      expect(() => {
+        loyaltyLib.getLoyaltyPointsForRideAmount('bronze', 'thirty');
+      }).to.throw('parameters may be in a wrong type');
     });
 
     it('should throw an error caused by a wrong type of loyaltyStatus', () => {
-      const points = loyaltyLib.getLoyaltyPointsForRideAmount(30, 30);
-      expect(points).toThrow(new Error('Error, rideAmount is not a number or is negative'));
+      expect(() => {
+        loyaltyLib.getLoyaltyPointsForRideAmount(30, 30);
+      }).to.throw('parameters may be in a wrong type');
     });
 
     it('should throw an error caused by a negative rideAmount', () => {
-      const points = loyaltyLib.getLoyaltyPointsForRideAmount('bronze', -30);
-      expect(points).toThrow(new Error('Error, rideAmount is not a number or is negative'));
+      expect(() => {
+        loyaltyLib.getLoyaltyPointsForRideAmount('bronze', -30);
+      }).to.throw('rideAmount is not a number or is negative');
     });
 
     it('should throw an error if rideAmount is egal to 0', () => {
-      const points = loyaltyLib.getLoyaltyPointsForRideAmount('bronze', 0);
-      expect(points).toThrow(new Error('Error, rideAmount is not a number or is negative'));
+      expect(() => {
+        loyaltyLib.getLoyaltyPointsForRideAmount('bronze', 0);
+      }).to.throw('rideAmount is not a number or is negative');
     });
   });
 
