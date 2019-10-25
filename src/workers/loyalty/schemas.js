@@ -15,6 +15,9 @@ const rideCreatedSchema = Joi.object({
 
 const rideCompletedSchema = Joi.object({
   // TODO add any validation you think necessary
+  // id: Joi.objectId().required(),
+  // amount: Joi.number().min(0).required(),
+  // rider_id: Joi.objectId().required()
 }).unknown();
 
 module.exports = {
