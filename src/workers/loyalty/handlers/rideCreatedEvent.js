@@ -14,16 +14,26 @@ const riderModel = require('../../../models/riders');
  */
 async function handleRideCreatedEvent(message) {
   const { id: rideId, rider_id: riderId, amount } = message;
+  const newRide = { _id: rideId, rider_id: riderId, amount };
+
   logger.info(
     { ride_id: rideId, rider_id: riderId, amount },
     '[worker.handleRideCreatedEvent] Received user ride created event');
 
-
-  const rider = await riderModel.findOneById(
+  let rider = await riderModel.findOneById(
     ObjectId.createFromHexString(riderId)
   );
-  console.log(rider);
 
+  if (!rider) {
+    rider = await riderModel.insertOne({ _id: riderId });
+    newRide.state = 'created';
+    newRide.created_at = rider.created_at;
+    newRide.rider_status = rider.status;
+
+    logger.info(
+      { rider_id: riderId },
+    '[worker.handleRideCreatedEvent] Rider does not exists: insert him');
+  }
   // TODO make test pass if no rider
 
   // Idempotency (if message was sent more than once)
@@ -38,11 +48,7 @@ async function handleRideCreatedEvent(message) {
   logger.info(
     { ride_id: rideId, rider_id: riderId },
     '[worker.handleRideCreatedEvent] Insert ride');
-  await rideModel.insertOne({
-    _id: rideId,
-    rider_id: riderId,
-    amount
-  });
+  await rideModel.insertOne(newRide);
 }
 
 module.exports = handleRideCreatedEvent;
