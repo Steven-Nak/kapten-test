@@ -10,6 +10,7 @@ let db;
  * Connect the database
  *
  * @export
+ * @return {void}
  */
 async function connect() {
   db = await MongoClient.connect(config.mongodb.url, config.mongodb.options);
@@ -20,6 +21,7 @@ async function connect() {
  * Disconnect the database
  *
  * @export
+ * @return {void}
  */
 async function disconnect() {
   await db.close();
@@ -27,8 +29,10 @@ async function disconnect() {
 }
 
 /**
+ * Get the database
  *
- * @returns {*}
+ * @export
+ * @return {object} the database
  */
 function getDb() {
   return db;

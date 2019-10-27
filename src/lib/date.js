@@ -2,7 +2,7 @@
 
 /**
  * Get current date
- * @returns {Date}
+ * @returns {Date} the current date
  */
 function getDate() {
   return new Date();
