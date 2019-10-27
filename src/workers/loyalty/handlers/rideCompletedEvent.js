@@ -3,11 +3,14 @@
 const { ObjectId } = require('mongodb');
 const logger = require('chpr-logger');
 
-const { handleMessageError } = require('../../../lib/workers');
+const date = require('../../../lib/date');
 const ridesModel = require('../../../models/rides');
 const ridersModel = require('../../../models/riders');
 const loyaltyModel = require('../../../lib/loyalty');
-const date = require('../../../lib/date');
+const { handleMessageError } = require('../../../lib/workers');
+
+// TODO handle edge cases (no rider, no ride), to make tests pass
+// TODO Complete ride + update rider's status
 
 /**
  * Bus message handler for ride complete events
@@ -16,18 +19,23 @@ const date = require('../../../lib/date');
  * @param   {Object} messageFields The bus message metadata.
  * @returns {void}
  */
-async function handleRideCompletedEvent(message) {
-  const { id: rideId, amount, rider_id: riderId } = message;
-  const newRide = { _id: rideId, rider_id: riderId, amount };
-
+async function handleRideCompletedEvent(message, messageFields) {
   try {
-    let ride = await ridesModel.findOneById(ObjectId(rideId));
+    const { id: rideId, amount, rider_id: riderId } = message;
+    const createRide = { _id: rideId, rider_id: riderId, amount };
+
+    const ride = await ridesModel.findOneById(
+      ObjectId.createFromHexString(rideId)
+    );
 
     logger.info(
       { ride_id: rideId, rider_id: riderId, amount },
-      '[worker.handleRideCompletedEvent] Received user ride completed event');
+      '[worker.handleRideCompletedEvent] Received user ride completed event'
+    );
 
-    let rider = await ridersModel.findOneById(ObjectId(riderId));
+    let rider = await ridersModel.findOneById(
+      ObjectId.createFromHexString(riderId)
+    );
 
     if (!rider) {
       logger.info(
@@ -38,31 +46,33 @@ async function handleRideCompletedEvent(message) {
     }
 
     if (!ride) {
-      if (!message.create_at) newRide.created_at = date.getDate();
-      ride = await ridesModel.insertOne(newRide);
+      if (!message.create_at) createRide.created_at = date.getDate();
+      await ridesModel.insertOne(createRide);
+
       logger.info({ ride_id: rideId, rider_id: riderId },
-        '[worker.handleRideCompletedEvent] Insert ride');
+        '[worker.handleRideCompletedEvent] Insert ride'
+      );
     }
 
-    const updateInfo = await loyaltyModel.getRiderUpdate(rider, message.amount);
-    const riderUpdate = await ridersModel.updateOne(ObjectId(riderId), {
-      ride_count: updateInfo.ride_count,
-      points: updateInfo.points,
-      status: updateInfo.status
-    });
+    const updateLoyaltyRider = await loyaltyModel.getRiderUpdate(rider, message.amount);
 
-    if (!riderUpdate.result.nModified) throw Error('info of rider not updated');
+    const riderUpdate = await ridersModel.updateOne(
+      ObjectId.createFromHexString(riderId),
+      updateLoyaltyRider
+    );
+
+    if (!riderUpdate) {
+      logger.info('[worker.handleRideCompletedEvent] Updating rider failed');
+      return;
+    }
 
     logger.info(
-      { ride_id: rideId, rider_id: riderId, rider_update: updateInfo },
+      { ride_id: rideId, rider_id: riderId, rider_update: updateLoyaltyRider },
       '[worker.handleRideCompletedEvent] Update rider'
     );
   } catch (err) {
-    handleMessageError(err, message);
+    handleMessageError(err, message, messageFields);
   }
-
-  // TODO handle edge cases (no rider, no ride), to make tests pass
-  // TODO Complete ride + update rider's status
 }
 
 module.exports = handleRideCompletedEvent;

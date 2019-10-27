@@ -3,14 +3,8 @@
 const logger = require('chpr-logger');
 const { ObjectId } = require('mongodb');
 
-const Joi = require('../../../lib/joi');
-const { handleMessageError } = require('../../../lib/workers');
 const riderModel = require('../../../models/riders');
-
-const messageSchema = Joi.object({
-  id: Joi.objectId().required(),
-  name: Joi.string().min(6)
-});
+const { handleMessageError } = require('../../../lib/workers');
 
 // TODO make test pass if rider already created
 
@@ -23,10 +17,12 @@ const messageSchema = Joi.object({
  */
 async function handleSignupEvent(message, messageFields) {
   try {
-    Joi.attempt(message, messageSchema);
-
     const { id: riderId, name } = message;
-    const res = await riderModel.findOneById(ObjectId(riderId));
+
+    // Idempotency (if message was sent more than once)
+    const res = await riderModel.findOneById(
+      ObjectId.createFromHexString(riderId)
+    );
 
     logger.info(
       { rider_id: riderId, name },
