@@ -24,14 +24,19 @@ async function handleRideCompletedEvent(message, messageFields) {
     const { id: rideId, amount, rider_id: riderId } = message;
     const createRide = { _id: rideId, rider_id: riderId, amount };
 
-    const ride = await ridesModel.findOneById(
-      ObjectId.createFromHexString(rideId)
-    );
-
     logger.info(
       { ride_id: rideId, rider_id: riderId, amount },
       '[worker.handleRideCompletedEvent] Received user ride completed event'
     );
+
+    const ride = await ridesModel.findOneById(
+      ObjectId.createFromHexString(rideId)
+    );
+
+    if (ride) {
+      logger.info('[worker.handleRideCompletedEvent] Ride already treated');
+      return;
+    }
 
     let rider = await ridersModel.findOneById(
       ObjectId.createFromHexString(riderId)
@@ -40,22 +45,18 @@ async function handleRideCompletedEvent(message, messageFields) {
     if (!rider) {
       logger.info(
         { rider_id: riderId },
-      '[worker.handleRideCompletedEvent] Rider does not exists: insert him');
-
+        '[worker.handleRideCompletedEvent] Rider does not exists: insert him');
       rider = await ridersModel.insertOne({ _id: riderId });
     }
 
-    if (!ride) {
-      if (!message.create_at) createRide.created_at = date.getDate();
-      await ridesModel.insertOne(createRide);
-
-      logger.info({ ride_id: rideId, rider_id: riderId },
-        '[worker.handleRideCompletedEvent] Insert ride'
-      );
-    }
+    if (!message.create_at) createRide.created_at = date.getDate();
+    await ridesModel.insertOne(createRide);
+    logger.info(
+      { ride_id: rideId, rider_id: riderId },
+      '[worker.handleRideCompletedEvent] Insert ride'
+    );
 
     const updateLoyaltyRider = await loyaltyModel.getRiderUpdate(rider, message.amount);
-
     const riderUpdate = await ridersModel.updateOne(
       ObjectId.createFromHexString(riderId),
       updateLoyaltyRider

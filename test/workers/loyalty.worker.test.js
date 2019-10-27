@@ -445,6 +445,37 @@ describe('workers/loyalty', () => {
       ]);
     });
 
+    it('does not try to save ride if it is already saved in db', async () => {
+      await rideModel.insertOne({
+        _id: '111111111111111111111110',
+        rider_id: '000000000000000000000001',
+        amount: 10
+      });
+
+      await publish('ride.completed', message);
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([{
+        _id: ObjectId.createFromHexString('111111111111111111111110'),
+        rider_id: ObjectId.createFromHexString('000000000000000000000001'),
+        amount: 10
+      }]);
+
+      expect(infoSpy.args).to.deep.equal([
+        [
+          {
+            ride_id: '111111111111111111111110',
+            rider_id: '000000000000000000000001',
+            amount: 10
+          },
+          '[worker.handleRideCompletedEvent] Received user ride completed event'
+        ],
+        [
+          '[worker.handleRideCompletedEvent] Ride already treated'
+        ]
+      ]);
+    });
+
     it('also inserts rider in db if he does not exist', async () => {
       await publish('ride.completed', message);
 
@@ -498,6 +529,69 @@ describe('workers/loyalty', () => {
           '[worker.handleRideCompletedEvent] Update rider'
         ]
       ]);
+    });
+
+    it('fails validation if no id in message', async () => {
+      await publish('ride.completed', _.omit(message, 'id'));
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if id is not a valid ObjectId', async () => {
+      await publish('ride.completed', { ...message, id: 'not valid' });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if no rider_id in message', async () => {
+      await publish('ride.completed', _.omit(message, 'rider_id'));
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if rider_id is not a valid ObjectId', async () => {
+      await publish('ride.completed', { ...message, rider_id: 'not valid' });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if no amount in message', async () => {
+      await publish('ride.completed', _.omit(message, 'amount'));
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if amount is not a number', async () => {
+      await publish('ride.completed', { ...message, amount: 'not valid' });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if amount is negative', async () => {
+      await publish('ride.completed', { ...message, amount: -5 });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
     });
   });
 });
