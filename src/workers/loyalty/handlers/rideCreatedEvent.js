@@ -4,7 +4,7 @@ const logger = require('chpr-logger');
 const { ObjectId } = require('mongodb');
 
 const rideModel = require('../../../models/rides');
-const riderModel = require('../../../models/riders');
+const ridersModel = require('../../../models/riders');
 
 /**
  * Bus message handler for ride create events
@@ -20,12 +20,12 @@ async function handleRideCreatedEvent(message) {
     { ride_id: rideId, rider_id: riderId, amount },
     '[worker.handleRideCreatedEvent] Received user ride created event');
 
-  let rider = await riderModel.findOneById(
+  let rider = await ridersModel.findOneById(
     ObjectId.createFromHexString(riderId)
   );
 
   if (!rider) {
-    rider = await riderModel.insertOne({ _id: riderId });
+    rider = await ridersModel.insertOne({ _id: riderId });
     newRide.state = 'created';
     newRide.created_at = rider.created_at;
     newRide.rider_status = rider.status;
