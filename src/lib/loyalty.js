@@ -52,23 +52,16 @@ function getLoyaltyPointsForRideAmount(loyaltyStatus, rideAmount) {
   if (loyaltyStatus !== 'bronze' && loyaltyStatus !== 'silver' &&
       loyaltyStatus !== 'gold' && loyaltyStatus !== 'platinum') throw Error('loyaltyStatus is invalid');
 
-  let points;
-
   switch (status) {
     case 'silver' :
-      points = rideAmount * 3;
-      break;
+      return rideAmount * 3;
     case 'gold' :
-      points = rideAmount * 5;
-      break;
+      return rideAmount * 5;
     case 'platinum' :
-      points = rideAmount * 10;
-      break;
+      return rideAmount * 10;
     default :
-      points = rideAmount;
+      return rideAmount;
   }
-
-  return points;
 }
 
 /**
