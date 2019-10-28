@@ -12,12 +12,14 @@ const mongo = require('../../lib/mongodb');
 const {
   handleSignupEvent,
   handleRideCreatedEvent,
-  handleRideCompletedEvent
+  handleRideCompletedEvent,
+  handleRideCompletedWithPointsEvent
 } = require('./handlers');
 const {
   rideCreatedSchema,
   rideCompletedSchema,
-  signupSchema
+  signupSchema,
+  rideCompletedWithPointsSchema
 } = require('./schemas');
 
 /**
@@ -45,6 +47,11 @@ async function start() {
           handle: handleRideCompletedEvent,
           validate: message => Joi.assert(message, rideCompletedSchema),
           routingKey: 'ride.completed'
+        },
+        {
+          handle: handleRideCompletedWithPointsEvent,
+          validate: message => Joi.assert(message, rideCompletedWithPointsSchema),
+          routingKey: 'ride.completed.with.points'
         }
       ],
       {
