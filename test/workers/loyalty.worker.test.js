@@ -594,4 +594,129 @@ describe('workers/loyalty', () => {
       expect(infoSpy.args).to.deep.equal([]);
     });
   });
+
+  describe('#handleRideRemovePoints', () => {
+    const riderId = '000000000000000000000001';
+    const riderObjectId = ObjectId.createFromHexString(riderId);
+
+    const riderBefore = {
+      _id: riderId,
+      name: 'John Doe',
+      points: 1000,
+      status: 'silver',
+      ride_count: 35,
+      created_at: date
+    };
+
+    const message = {
+      id: riderId,
+      points_spent: 100
+    };
+
+    it('remove points that the rider has spent', async () => {
+      await riderModel.insertOne(riderBefore);
+
+      await publish('ride.remove.points', message);
+
+      const rider = await riderModel.findOneById(riderObjectId);
+      expect(rider).to.deep.equal({
+        _id: riderObjectId,
+        name: 'John Doe',
+        points: 900,
+        status: 'silver',
+        ride_count: 35,
+        created_at: date
+      });
+
+      expect(infoSpy.args).to.deep.equal([
+        [
+          {
+            id: riderId,
+            points_spent: 100
+          },
+          '[worker.handleRemovePointsEvent] Received rider remove points event'
+        ],
+        [
+          {
+            current_rider: {
+              _id: riderObjectId,
+              name: 'John Doe',
+              points: 1000,
+              status: 'silver',
+              ride_count: 35,
+              created_at: date
+            }
+          },
+          '[worker.handleRemovePointsEvent] Get current rider'
+        ],
+        [
+          {
+            rider_update: {
+              _id: riderObjectId,
+              name: 'John Doe',
+              points: 900,
+              status: 'silver',
+              ride_count: 35,
+              created_at: date
+            }
+          },
+          '[worker.handleRemovePointsEvent] Update rider'
+        ]
+      ]);
+    });
+
+    it('fails validation if no id in message', async () => {
+      await publish('ride.remove.points', _.omit(message, 'id'));
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if id is not a valid ObjectId', async () => {
+      await publish('ride.remove.points', { ...message, id: 'not valid' });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if no points_spent in message', async () => {
+      await publish('ride.remove.points', _.omit(message, 'points_spent'));
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if points_spent is not a number', async () => {
+      await publish('ride.remove.points', { ...message, points_spent: 'not valid' });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if points_spent is egal to 0', async () => {
+      await publish('ride.remove.points', { ...message, points_spent: 0 });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+
+    it('fails validation if points_spent is negative', async () => {
+      await publish('ride.remove.points', { ...message, points_spent: -5 });
+
+      const rides = await rideModel.find().toArray();
+      expect(rides).to.deep.equal([]);
+
+      expect(infoSpy.args).to.deep.equal([]);
+    });
+  });
 });
