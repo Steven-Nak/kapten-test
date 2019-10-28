@@ -1,6 +1,7 @@
 'use strict';
 
 const riders = require('../models/riders');
+const fidelity = require('../models/fidelity');
 
 const loyalty = require('./loyalty');
 
@@ -35,7 +36,27 @@ async function getLoyaltyInfo(id) {
   };
 }
 
+/**
+ * getLoyaltyStatus tries to fetch rider with its id and return his loyalty status
+ *
+ * @param {ObjectId} id - the user's mongo id
+ *
+ * @returns {Object} { rider_exists, { status, points, rides_to_next_status } }
+ */
+async function getLoyaltyStatus(id) {
+  const rider = await fidelity.findOneById(id, {
+    loyalty_status: 1
+  });
+
+  if (!rider) {
+    throw RIDER_NOT_FOUND;
+  }
+
+  return { rider };
+}
+
 module.exports = {
   getLoyaltyInfo,
+  getLoyaltyStatus,
   RIDER_NOT_FOUND
 };
