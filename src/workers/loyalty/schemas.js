@@ -21,16 +21,14 @@ const rideCompletedSchema = Joi.object({
   created_at: Joi.string().optional()
 }).unknown();
 
-const rideCompletedWithPointsSchema = Joi.object({
+const removePointsSchema = Joi.object({
   id: Joi.objectId().required(),
-  amount: Joi.number().min(0).required(),
-  rider_id: Joi.objectId().required(),
-  used_points: Joi.number().min(0).required()
+  points_spent: Joi.number().min(1).required()
 });
 
 module.exports = {
   rideCreatedSchema,
   rideCompletedSchema,
   signupSchema,
-  rideCompletedWithPointsSchema
+  removePointsSchema
 };
