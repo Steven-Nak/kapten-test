@@ -49,7 +49,10 @@ async function handleRideCompletedEvent(message, messageFields) {
       rider = await ridersModel.insertOne({ _id: riderId });
     }
 
-    if (!message.create_at) createRide.created_at = date.getDate();
+    if (!message.create_at) {
+      createRide.created_at = date.getDate();
+    }
+
     await ridesModel.insertOne(createRide);
     logger.info(
       { ride_id: rideId, rider_id: riderId },
