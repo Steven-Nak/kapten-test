@@ -3,7 +3,7 @@
 const logger = require('chpr-logger');
 const { ObjectId } = require('mongodb');
 
-const rideModel = require('../../../models/rides');
+const ridesModel = require('../../../models/rides');
 const ridersModel = require('../../../models/riders');
 const { handleMessageError } = require('../../../lib/workers');
 
@@ -31,7 +31,10 @@ async function handleRideCreatedEvent(message, messageFields) {
     );
 
     if (!rider) {
-      rider = await ridersModel.insertOne({ _id: riderId });
+      rider = await ridersModel.insertOne({
+        _id: ObjectId.createFromHexString(riderId)
+      });
+
       createRide.state = 'created';
       createRide.created_at = rider.created_at;
       createRide.rider_status = rider.status;
@@ -42,7 +45,7 @@ async function handleRideCreatedEvent(message, messageFields) {
     }
 
     // Idempotency (if message was sent more than once)
-    const ride = await rideModel.findOneById(
+    const ride = await ridesModel.findOneById(
       ObjectId.createFromHexString(rideId)
     );
 
@@ -57,7 +60,7 @@ async function handleRideCreatedEvent(message, messageFields) {
       '[worker.handleRideCreatedEvent] Insert ride'
     );
 
-    await rideModel.insertOne(createRide);
+    await ridesModel.insertOne(createRide);
   } catch (err) {
     handleMessageError(err, message, messageFields);
   }
