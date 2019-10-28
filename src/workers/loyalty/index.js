@@ -13,13 +13,13 @@ const {
   handleSignupEvent,
   handleRideCreatedEvent,
   handleRideCompletedEvent,
-  handleRideCompletedWithPointsEvent
+  handleRemovePointsEvent
 } = require('./handlers');
 const {
   rideCreatedSchema,
   rideCompletedSchema,
   signupSchema,
-  rideCompletedWithPointsSchema
+  removePointsSchema
 } = require('./schemas');
 
 /**
@@ -49,9 +49,9 @@ async function start() {
           routingKey: 'ride.completed'
         },
         {
-          handle: handleRideCompletedWithPointsEvent,
-          validate: message => Joi.assert(message, rideCompletedWithPointsSchema),
-          routingKey: 'ride.completed.with.points'
+          handle: handleRemovePointsEvent,
+          validate: message => Joi.assert(message, removePointsSchema),
+          routingKey: 'ride.remove.points'
         }
       ],
       {
