@@ -52,7 +52,14 @@ async function getLoyaltyStatus(id) {
     throw RIDER_NOT_FOUND;
   }
 
-  return { rider };
+  const fidelityStatus = {};
+
+  Object.keys(rider.loyalty_status).forEach((key) => {
+    if (rider.loyalty_status[key].points_spent > 0 && rider.loyalty_status[key].rides_count > 0) {
+      fidelityStatus[key] = rider.loyalty_status[key];
+    }
+  });
+  return fidelityStatus;
 }
 
 module.exports = {
