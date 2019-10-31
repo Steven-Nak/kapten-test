@@ -7,6 +7,13 @@ const ridersModel = require('../../../models/riders');
 const fidelityModel = require('../../../models/fidelity');
 const { handleMessageError } = require('../../../lib/workers');
 
+const loyaltyScale = {
+  bronze: { points_spent: 0, rides_count: 0 },
+  silver: { points_spent: 0, rides_count: 0 },
+  gold: { points_spent: 0, rides_count: 0 },
+  platinum: { points_spent: 0, rides_count: 0 }
+};
+
 /**
  * Bus message handler for remove points events
  *
@@ -17,16 +24,7 @@ const { handleMessageError } = require('../../../lib/workers');
 async function handleRemovePointsEvent(message, messageFields) {
   try {
     const { id: riderId, points_spent: removePoints } = message;
-
-    const newFidelityStatus = {
-      _id: riderId,
-      loyalty_status: {
-        bronze: { points_spent: 0, rides_count: 0 },
-        silver: { points_spent: 0, rides_count: 0 },
-        gold: { points_spent: 0, rides_count: 0 },
-        platinum: { points_spent: 0, rides_count: 0 }
-      }
-    };
+    const newLoyaltyStatus = { _id: riderId, loyalty_status: loyaltyScale };
 
     logger.info(
       { id: riderId, points_spent: removePoints },
@@ -46,35 +44,41 @@ async function handleRemovePointsEvent(message, messageFields) {
       '[worker.handleRemovePointsEvent] Get current rider'
     );
 
+    if (removePoints > rider.points) {
+      throw Error('Rider has not enough points');
+    }
+
     rider = await ridersModel.updateOne(
       ObjectId.createFromHexString(riderId),
       { points: rider.points - removePoints }
     );
 
-    let res = await fidelityModel.findOneById(
+    if (!rider.result.nModified) {
+      throw Error('Updating points of rider failed');
+    }
+
+    let riderLoyalty = await fidelityModel.findOneById(
       ObjectId.createFromHexString(riderId)
     );
 
-    if (!res) {
-      res = await fidelityModel.insertOne(newFidelityStatus);
+    // first time rider used his points, create and save in database his loyalty status
+    if (!riderLoyalty) {
+      riderLoyalty = await fidelityModel.insertOne(newLoyaltyStatus);
     }
 
-    res.loyalty_status[status].points_spent += removePoints;
-    res.loyalty_status[status].rides_count += 1;
+    riderLoyalty.loyalty_status[status].points_spent += removePoints;
+    riderLoyalty.loyalty_status[status].rides_count += 1;
 
     const updateFidelity = await fidelityModel.updateOne(
       ObjectId.createFromHexString(riderId),
-      res
+      riderLoyalty
     );
 
     if (!updateFidelity.result.nModified) {
-      logger.info(
-        { id: riderId, points_spent: removePoints },
-        '[worker.handleRemovePointsEvent] Updating rider failed'
-      );
-      return;
+      throw Error('Updating loyalty status of rider failed');
     }
 
+    // get rider to print new infos
     rider = await ridersModel.findOneById(
       ObjectId.createFromHexString(riderId)
     );
