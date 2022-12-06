@@ -46,7 +46,7 @@
     "chpr-worker": "2.1.1",
     "co": "4.6.0",
     "co-express": "1.2.2",
-    "express": "4.14.1",
+    "express": "4.17.3",
     "express-middleware": "3.0.0",
     "http-errors": "1.5.1",
     "http-status-codes": "1.1.6",
